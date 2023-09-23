@@ -29,6 +29,15 @@ struct Str:
             s += c[0]
         return s
 
+    fn startswith(inout self, prefix: String) -> Bool:
+        let pref_len = len(prefix)
+        if pref_len > self.size:
+            return False
+        for i in range(pref_len):
+            if self.data.load(i) != ord(prefix[i]):
+                return False
+        return True
+
 fn main():
     var s = Str()
     s.from_string(String("the quick brown fox jumps"))
@@ -40,3 +49,5 @@ fn main():
     s2.from_string("finally a vector of string")
     vec.push_back(s2)
     print(vec[1].to_str())
+    print(s2.startswith("finally"))
+    print(s2.startswith("finalle"))
