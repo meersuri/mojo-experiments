@@ -1,5 +1,7 @@
 from memory.unsafe import Pointer
 
+from mystr import Str
+
 @register_passable
 struct List[T: AnyType]:
     var data: Pointer[T]
@@ -13,7 +15,7 @@ struct List[T: AnyType]:
             data: Pointer[T].alloc(1)
         }
 
-    fn append(inout self, obj: T):
+    fn append(inout self, owned obj: T):
         if self.size == self.capacity:
             let new_capacity = 2*self.capacity
             let new_data = Pointer[T].alloc(new_capacity)
@@ -22,8 +24,7 @@ struct List[T: AnyType]:
             self.data.free()
             self.capacity = new_capacity
             self.data = new_data
-        var obj_copy = obj # an owned copy?
-        self.data.store(self.size, obj_copy)
+        self.data.store(self.size, obj)
         self.size += 1
 
     fn __getitem__(inout self, idx: Int) raises -> T:
@@ -36,12 +37,45 @@ struct List[T: AnyType]:
         self.size = 0
         self.capacity = 0
 
+@register_passable("trivial")
+struct Pair:
+    var x: Int
+    var y: Int
+    fn __init__(x: Int, y: Int) -> Self:
+        return Self {
+                x: x,
+                y: y
+                }
+
 fn main() raises:
-    var items = List[Int]()
-    print(items.size)
+    var ints = List[Int]()
+    print(ints.size)
     for i in range(10):
-        items.append(i)
-    print(items.size)
-    for i in range(items.size):
-        print(items[i])
+        ints.append(i)
+    print(ints.size)
+    for i in range(ints.size):
+        print(ints[i])
+
+    var pairs = List[Pair]()
+    print(pairs.size)
+    for i in range(10):
+        pairs.append(Pair(i, i + 1))
+    print(pairs.size)
+    for i in range(pairs.size):
+        print(pairs[i].x, pairs[i].y)
+
+    var strs = List[Str]()
+    print(strs.size)
+    var s = Str()
+    s.from_string("hello")
+    strs.append(s)
+    print(strs.size)
+    var inner = strs[0]
+    inner.from_string(s)
+    print(strs[0].to_str())
+    s.from_string("world")
+    strs.append(s)
+    print(strs.size)
+    strs[1].from_string(s)
+    print(strs[1].to_str())
 

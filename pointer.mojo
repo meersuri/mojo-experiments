@@ -3,11 +3,12 @@ from sys import argv
 
 fn make_int_array(n: Int) raises:
     print(n)
-    var x = Pointer[Int].alloc(n)
+    var x = Pointer[Int8].alloc(n)
     for i in range(n):
         x.store(i, i)
-    for i in range(n):
         print(x.load(i))
+#    for i in range(n):
+#        print(x.load(i))
 
 fn main() raises:
     if argv().__len__() == 1:

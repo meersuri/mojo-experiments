@@ -1,12 +1,16 @@
 from python import Python, PythonObject
 from utils.vector import DynamicVector
+from sys import argv
 
-alias TensorShape = DynamicVector[Int]
+from mystr import Str
 
+alias TensorShape = DynamicVector[Int] # yes I'm aware that TensorSpec exists
+
+@register_passable
 struct InputOutputSpec:
-    var name: String
+    var name: Str
     var shape: TensorShape
-    fn __init__(inout self, name: String, shape: TensorShape):
+    fn __init__(inout self, name: Str, shape: TensorShape):
         self.name = name
         self.shape = shape
 
@@ -14,8 +18,8 @@ struct ModelInfo:
     var in_spec: DynamicVector[InputOutputSpec]
     var out_spec: DynamicVector[InputOutputSpec]
     var layer_count: Int
-    var ops: DynamicVector[String]
-    fn __init__(inout self, input_spec: DynamicVector[InputOutputSpec], output_spec: DynamicVector[InputOutputSpec], layer_count: Int, operators: DynamicVector[String]): 
+    var ops: DynamicVector[Str]
+    fn __init__(inout self, input_spec: DynamicVector[InputOutputSpec], output_spec: DynamicVector[InputOutputSpec], layer_count: Int, operators: DynamicVector[Str]): 
         self.in_spec = input_spec
         self.out_spec = output_spec
         self.layer_count = layer_count
@@ -30,39 +34,27 @@ fn parse_onnx_model(model: PythonObject) raises:
     print("INPUTS:")
     for i in range(input_count):
         let input_i = graph.input[i]
-        let name: String = input_i.name.to_string()
-        print(i, name)
+        var name = Str()
+        name.from_string(input_i.name.to_string())
+        print(i, name.to_str())
         var shape =  TensorShape()
         let type_info = input_i.type.tensor_type
         for di in range(type_info.shape.dim.__len__()):
-            let s = type_info.shape.dim[di].to_string()
-            if startswith(s, "dim_param"):
+            var shape_str = Str() 
+            shape_str.from_string(type_info.shape.dim[di].to_string())
+            if shape_str.startswith("dim_param"):
                 print_no_newline("dynamic ")
             else:
                 print_no_newline("static ")
-            print(s)
+            print(shape_str.to_str())
         #in_spec.push_back(InputOutputSpec(name, shape))
-
-fn startswith(s: String, prefix: StringRef) -> Bool:
-    let pref_len = len(prefix)
-    if pref_len > len(s):
-        return False
-    for i in range(pref_len):
-        if s[i] != prefix[i]:
-            return False
-    return True
-
-#fn remove_prefix(s: String, prefix: StringRef) -> String:
-#    if not startswith(s, prefix):
-#        return String(s)
-#    var out = String
-
-
-
 
 fn main() raises:
     let onnx = Python.import_module('onnx')
-    print(onnx.__version__)
-    let model = onnx.load('mobilenetv2-10.onnx')
+    print('ONNX version: ', onnx.__version__)
+    let args = argv()
+    if len(args) == 1:
+        raise Error("Enter path to .onnx model")
+    let model = onnx.load(args[1])
     parse_onnx_model(model)
     
