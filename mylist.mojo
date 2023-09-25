@@ -15,6 +15,15 @@ struct List[T: AnyType]:
             data: Pointer[T].alloc(1)
         }
 
+    fn __copyinit__(borrowed other: List[T]) -> Self:
+        let data = Pointer[T].alloc(other.capacity)
+        memcpy(data, other.data, other.size)
+        return Self {
+            data: data,
+            size: other.size,
+            capacity: other.capacity,
+        }
+
     fn append(inout self, owned obj: T):
         if self.size == self.capacity:
             let new_capacity = 2*self.capacity
@@ -27,11 +36,11 @@ struct List[T: AnyType]:
         self.data.store(self.size, obj)
         self.size += 1
 
-    fn __getitem__(inout self, idx: Int) raises -> T:
+    fn __getitem__(borrowed self, idx: Int) raises -> T:
         if idx >= 0 and idx > self.size:
             raise Error("Index out of bounds")
         return self.data.load(idx)
-    
+
     fn __del__(owned self):
         self.data.free()
         self.size = 0
@@ -68,11 +77,15 @@ fn list_pairs() raises:
 fn main() raises:
     var strs = List[Str]()
     print(strs.size)
-    var s = Str("hello")
+    let s = Str("hello")
     strs.append(s)
     print(strs.size)
     print(strs[0].to_str())
     strs.append(Str("world"))
     print(strs.size)
     print(strs[1].to_str())
+
+    let strs2 = strs
+    for i in range(strs2.size):
+        print(strs2[i].to_str())
 
