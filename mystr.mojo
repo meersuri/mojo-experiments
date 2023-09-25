@@ -22,6 +22,7 @@ struct Str:
                 }
 
     fn __init__(s: String) -> Self:
+        #        print('init from:', s)
         let size = len(s)
         let data = Pointer[UInt8].alloc(size)
         for i in range(size):
@@ -31,13 +32,21 @@ struct Str:
                 size: size
                 }
 
-    fn __copyinit__(borrowed other) -> Self:
+    fn __copyinit__(borrowed other: Str) -> Self:
+        #        print('copied', other.to_str())
         let data = Pointer[UInt8].alloc(other.size)
         memcpy(data, other.data, other.size)
         return Self {
                 data: data,
                 size: other.size
                 }
+
+    fn __getitem__(borrowed self, owned idx: Int) raises -> Self:
+        if idx < 0:
+            idx += self.size
+        if idx < 0 or idx >= self.size:
+            raise Error("Index out of bounds")
+        return chr(self.data.load(idx).to_int())[0]
 
     fn to_str(borrowed self) -> String:
         var s = String()
@@ -55,16 +64,15 @@ struct Str:
                 return False
         return True
 
-    fn __del__(owned self):
-        self.data.free()
-        self.size = 0
-
-fn main():
+fn main() raises:
     let s = Str("the quick brown fox jumps")
     print(s.to_str())
     let s2 = Str("yet another string")
     print(s2.to_str())
     let s3 = s2;
     print(s3.to_str())
-    print(s2.startswith("finally"))
-    print(s2.startswith("finalle"))
+    print(s2.startswith("yet"))
+    print(s2.startswith("yeti"))
+    for i in range(s2.size):
+        print_no_newline(s2[i].to_str())
+    print()
