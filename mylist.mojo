@@ -47,7 +47,7 @@ struct Pair:
                 y: y
                 }
 
-fn main() raises:
+fn list_ints() raises:
     var ints = List[Int]()
     print(ints.size)
     for i in range(10):
@@ -56,6 +56,7 @@ fn main() raises:
     for i in range(ints.size):
         print(ints[i])
 
+fn list_pairs() raises:
     var pairs = List[Pair]()
     print(pairs.size)
     for i in range(10):
@@ -64,18 +65,14 @@ fn main() raises:
     for i in range(pairs.size):
         print(pairs[i].x, pairs[i].y)
 
+fn main() raises:
     var strs = List[Str]()
     print(strs.size)
-    var s = Str()
-    s.from_string("hello")
+    var s = Str("hello")
     strs.append(s)
     print(strs.size)
-    var inner = strs[0]
-    inner.from_string(s)
     print(strs[0].to_str())
-    s.from_string("world")
-    strs.append(s)
+    strs.append(Str("world"))
     print(strs.size)
-    strs[1].from_string(s)
     print(strs[1].to_str())
 
