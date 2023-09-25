@@ -1,34 +1,43 @@
 from memory.unsafe import Pointer
+from memory.memory import memcpy, memset_zero
 from utils.vector import DynamicVector
 
 @register_passable
 struct Str:
-    alias PtrToData = Pointer[UInt8]
     var data: Pointer[UInt8]
     var size: Int
+
     fn __init__() -> Self:
         return Self {
                 data: Pointer[UInt8].get_null(),
                 size: 0
                 }
 
-    fn __copyinit__(borrowed other) -> Self:
+    fn __init__(size: Int) -> Self:
+        let data = Pointer[UInt8].alloc(size)
+        memset_zero(data, size)
         return Self {
-                data: Pointer[UInt8].alloc(other.size),
-                size: other.size
+                data: data,
+                size: size
                 }
 
-    fn make_empty(inout self, size: Int):
-        self.data = Pointer[UInt8].alloc(size)
-        self.size = size
+    fn __init__(s: String) -> Self:
+        let size = len(s)
+        let data = Pointer[UInt8].alloc(size)
         for i in range(size):
-            self.data.store(i, 0)
+            data.store(i, UInt8(ord(s[i])))
+        return Self {
+                data: data,
+                size: size
+                }
 
-    fn from_string(inout self, s: String):
-        self.size = len(s)
-        self.data = Pointer[UInt8].alloc(self.size)
-        for i in range(self.size):
-            self.data.store(i, UInt8(ord(s[i])))
+    fn __copyinit__(borrowed other) -> Self:
+        let data = Pointer[UInt8].alloc(other.size)
+        memcpy(data, other.data, other.size)
+        return Self {
+                data: data,
+                size: other.size
+                }
 
     fn to_str(borrowed self) -> String:
         var s = String()
@@ -51,11 +60,11 @@ struct Str:
         self.size = 0
 
 fn main():
-    var s = Str()
-    s.from_string("the quick brown fox jumps")
+    let s = Str("the quick brown fox jumps")
     print(s.to_str())
-    var s2 = Str()
-    s2.from_string("finally a vector of string")
+    let s2 = Str("yet another string")
     print(s2.to_str())
+    let s3 = s2;
+    print(s3.to_str())
     print(s2.startswith("finally"))
     print(s2.startswith("finalle"))
