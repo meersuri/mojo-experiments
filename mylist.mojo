@@ -36,8 +36,10 @@ struct List[T: AnyType]:
         self.data.store(self.size, obj)
         self.size += 1
 
-    fn __getitem__(borrowed self, idx: Int) raises -> T:
-        if idx >= 0 and idx > self.size:
+    fn __getitem__(borrowed self, owned idx: Int) raises -> T:
+        if idx < 0:
+            idx += self.size
+        if idx < 0 or idx >= self.size:
             raise Error("Index out of bounds")
         return self.data.load(idx)
 
@@ -84,6 +86,9 @@ fn main() raises:
     strs.append(Str("world"))
     print(strs.size)
     print(strs[1].to_str())
+
+    print(strs[-1].to_str())
+    print(strs[-2].to_str())
 
     let strs2 = strs
     for i in range(strs2.size):
