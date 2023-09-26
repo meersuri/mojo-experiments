@@ -64,7 +64,45 @@ struct Str:
                 return False
         return True
 
+    fn substr(borrowed self, start: Int) -> Str:
+        if start < 0 or start >= self.size:
+            return Str("")
+        let sub = Str(self.size - 1 - start + 1)
+        memcpy(sub.data, self.data + start, sub.size)
+        return sub
+
+    fn substr(borrowed self, start: Int, owned end: Int) -> Str:
+        if start < 0 or start >= self.size:
+            return Str("")
+        if end <= start:
+            return Str("")
+        end -= 1 # end is exclusive
+        if end >= self.size:
+            end = self.size - 1
+        let sub = Str(end - start + 1)
+        memcpy(sub.data, self.data + start, sub.size)
+        return sub
+
+    fn strip(borrowed self) -> Str:
+        var left = 0
+        while left < self.size:
+            let c = self.data.load(left)
+            if c == ord(' ') or c == ord('\n') or c == ord('\t'):
+                left += 1
+                continue
+            break
+        var right = self.size - 1
+        while right >= 0:
+            let c = self.data.load(right)
+            if  c == ord(' ') or c == ord('\n') or c == ord('\t'):
+                right -= 1
+                continue
+            break
+        return self.substr(left, right + 1)
+
+
 fn main() raises:
+    # of course I will convert these to tests
     let s = Str("the quick brown fox jumps")
     print(s.to_str())
     let s2 = Str("yet another string")
@@ -76,3 +114,12 @@ fn main() raises:
     for i in range(s2.size):
         print_no_newline(s2[i].to_str())
     print()
+    print(s3.substr(0).to_str())
+    print(s3.substr(1).to_str())
+    print(s3.substr(1,2).to_str())
+    print(s3.substr(2,s3.size).to_str())
+    print(s3.substr(24).size)
+    print(s3.substr(3,).size)
+    print(Str("   \n \thello\n ").strip().to_str())
+    print(Str("hello\n ").strip().to_str())
+    print(Str("hello").strip().to_str())
