@@ -43,10 +43,7 @@ struct List[T: AnyType]:
             raise Error("Index out of bounds")
         return self.data.load(idx)
 
-    fn __del__(owned self):
-        self.data.free()
-        self.size = 0
-        self.capacity = 0
+    #TODO: figure out why destructor causes double free
 
 @register_passable("trivial")
 struct Pair:

@@ -100,6 +100,8 @@ struct Str:
             break
         return self.substr(left, right + 1)
 
+    #TODO: figure out why destructor causes double free
+
 
 fn main() raises:
     # of course I will convert these to tests
